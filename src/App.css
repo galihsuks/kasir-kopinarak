@@ -1,38 +1,108 @@
-.App {
-  text-align: center;
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+.material-icons {
+    display: block;
+    margin: 0;
+    font-size: medium;
+}
+/* .print {
+    display: none;
+} */
+.no-print {
+    font-family: "Raleway", sans-serif;
+}
+.print {
+    display: none;
+    font-size: small;
+    width: 58mm;
+    background-color: aqua;
+    text-align: center;
+    font-weight: 600;
+    font-family: "Sofia Sans Condensed", sans-serif;
+}
+.print img {
+    width: 30mm;
+}
+.print table {
+    width: 100%;
+    border-collapse: collapse;
+    line-height: 16px;
+}
+.container-table {
+    overflow-y: auto;
+    max-height: calc(100vh - 400px);
+}
+.container-table thead tr {
+    position: sticky;
+    top: 0px;
+}
+.container-collapse {
+    display: flex;
+    overflow-y: hidden;
+    height: 0;
+    transition: 0.3s;
+}
+.menu:hover .container-collapse {
+    height: 20px;
+    transition: 0.3s;
+}
+.p-hover {
+    color: rgba(var(--bs-danger-rgb));
+}
+.p-hover:hover {
+    color: white;
+}
+.toast {
+    position: fixed;
+    z-index: 5;
+    font-weight: 500;
+    right: 20px;
+    bottom: -50px;
+    transition: 0.5s;
+}
+.toast.active {
+    bottom: 20px;
+    display: block;
+    transition: 0.5s;
+}
+.overlay-hitam-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.container-edit-daily {
+    background-color: white;
+    border-radius: 0.5em;
+    width: 50%;
+    height: fit-content;
+    padding: 2em;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+@media (max-width: 1300px) {
+    * {
+        font-size: small;
+    }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+@media print {
+    .no-print {
+        display: none;
+    }
+    .print {
+        display: block;
+    }
 }

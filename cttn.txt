@@ -1,0 +1,11 @@
+menu:
+- id
+- nama
+- harga
+perhari:
+- hari, tgl (unik value)
+- pendapatan total
+- menu1
+- menu2
+- ...
+- menu22
