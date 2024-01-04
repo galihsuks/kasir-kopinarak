@@ -578,7 +578,7 @@ export default function Dashboard() {
                 <div className="container">
                     <img src="img/logo.png" className="mx-auto d-block mt-2" />
                     <p className="mb-0">Kradenan, Trucuk, Klaten</p>
-                    <p className="mb-0 lh-1">Telp. 0812-1556-6838</p>
+                    <p className="mb-0 lh-1">Telp. 0895-1437-3921</p>
                     <p className="mb-0 lh-1">PassWifi : mbotenngertos</p>
                     <div className="d-flex justify-content-between mt-3">
                         <p className="mb-0 lh-1">{getTanggal()}</p>
