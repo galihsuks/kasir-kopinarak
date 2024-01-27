@@ -185,7 +185,7 @@ export default function Dashboard() {
             idStokUpdate.current.forEach((eId, index, array) => {
                 const dataPostStok = {
                     id: stokCurrent.current[eId].id,
-                    nominal: stokCurrent.current[eId].nominal
+                    nominal: stokCurrent.current[eId].nominal,
                 };
                 updateStok(dataPostStok);
                 if (index === array.length - 1) remAll();
@@ -249,7 +249,7 @@ export default function Dashboard() {
             pesanan: pesanan,
             atasNama: an,
             tanggal: getTanggal() + " " + str_waktu,
-            subtotal: subtotal.current
+            subtotal: subtotal.current,
         };
         let draftLocal = localStorage.getItem("draft");
         if (draftLocal) {
@@ -578,7 +578,7 @@ export default function Dashboard() {
                 <div className="container">
                     <img src="img/logo.png" className="mx-auto d-block mt-2" />
                     <p className="mb-0">Kradenan, Trucuk, Klaten</p>
-                    <p className="mb-0 lh-1">Telp. 0895-1437-3921</p>
+                    <p className="mb-0 lh-1">Telp. 0851-8234-9672</p>
                     <p className="mb-0 lh-1">PassWifi : mbotenngertos</p>
                     <div className="d-flex justify-content-between mt-3">
                         <p className="mb-0 lh-1">{getTanggal()}</p>
@@ -600,7 +600,7 @@ export default function Dashboard() {
                                             <tr>
                                                 <td
                                                     style={{
-                                                        paddingRight: "10px"
+                                                        paddingRight: "10px",
                                                     }}
                                                 >
                                                     {item.jumlah}
@@ -628,7 +628,7 @@ export default function Dashboard() {
                                 <th
                                     style={{
                                         paddingBlock: "0px",
-                                        lineHeight: "5px"
+                                        lineHeight: "5px",
                                     }}
                                 >
                                     ---------
@@ -651,7 +651,7 @@ export default function Dashboard() {
                                 <th
                                     style={{
                                         paddingBlock: "0px",
-                                        lineHeight: "5px"
+                                        lineHeight: "5px",
                                     }}
                                 >
                                     ---------
