@@ -63,7 +63,7 @@ export const getDaily = async (tgl) => {
         console.log(err);
     }
 };
-export const addDaily = async (total, pesanan, diskon) => {
+export const addDaily = async (total, pesanan, diskon, metode) => {
     try {
         let cek = [];
         let cek_i = [];
@@ -75,7 +75,7 @@ export const addDaily = async (total, pesanan, diskon) => {
                 const bufObj = {
                     nama: obj.nama,
                     harga: Number(obj.harga) * Number(obj.jumlah),
-                    jumlah: obj.jumlah
+                    jumlah: obj.jumlah,
                 };
                 dataFilter.push(bufObj);
             } else {
@@ -92,7 +92,8 @@ export const addDaily = async (total, pesanan, diskon) => {
             return {
                 nama: a.nama,
                 jumlah: a.jumlah,
-                harga: String(((100 - diskon) / 100) * a.harga)
+                harga: String(((100 - diskon) / 100) * a.harga),
+                jumlahNonTunai: metode === "tunai" ? 0 : 1,
             };
         });
         axios
@@ -100,7 +101,7 @@ export const addDaily = async (total, pesanan, diskon) => {
                 "api.php?function=addDaily",
                 JSON.stringify({
                     total: total,
-                    data: dataFilter1
+                    data: dataFilter1,
                 })
             )
             .then((res) => {
@@ -124,7 +125,7 @@ export const updateDaily = async (data, total, tgl) => {
             "api.php?function=updateDaily&tgl=" + tgl,
             JSON.stringify({
                 total: total,
-                data: data
+                data: data,
             })
         );
         return res.data;

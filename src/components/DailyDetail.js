@@ -38,6 +38,7 @@ export default function DailyDetail() {
     useEffect(() => {
         if (useEffectRan.current[0] === true) {
             setLoad(false);
+            console.log(JSON.parse(data.data));
         }
         return () => {
             useEffectRan.current[0] = true;
@@ -88,17 +89,38 @@ export default function DailyDetail() {
 
     const handleEdit = () => {
         if (Number(jumlah) > 0) {
-            const dataEdit = {
-                nama: menuSelected.current,
-                jumlah: Number(jumlah),
-                harga: String(total)
-            };
             const datalama = JSON.parse(data.data);
+            let jumlahSemua = 0;
             let totalSemua = 0;
             const menuSkrg = datalama.map((el) => {
-                if (el.nama === menuSelected.current) {
+                if (el.nama === menuSelected.current[0]) {
+                    const menuDataSelected = menu.current.filter(function (
+                        el_child
+                    ) {
+                        return el_child.nama == menuSelected.current[0];
+                    });
+                    let cekJumlahNonTunai = 0;
+                    if (menuSelected.current[1] === "tunai") {
+                        jumlahSemua += Number(el.jumlahNonTunai);
+                        totalSemua +=
+                            Number(menuDataSelected[0].harga) *
+                            Number(el.jumlahNonTunai);
+                    } else if (menuSelected.current[1] === "non-tunai") {
+                        jumlahSemua +=
+                            Number(el.jumlah) - Number(el.jumlahNonTunai);
+                        totalSemua +=
+                            Number(menuDataSelected[0].harga) *
+                            (Number(el.jumlah) - Number(el.jumlahNonTunai));
+                        cekJumlahNonTunai = jumlah;
+                    }
+                    jumlahSemua += jumlah;
                     totalSemua += total;
-                    return dataEdit;
+                    return {
+                        nama: menuSelected.current[0],
+                        jumlah: Number(jumlahSemua),
+                        jumlahNonTunai: cekJumlahNonTunai,
+                        harga: String(totalSemua),
+                    };
                 } else {
                     totalSemua += Number(el.harga);
                     return el;
@@ -121,7 +143,7 @@ export default function DailyDetail() {
     useEffect(() => {
         if (useEffectRan.current[1] === true) {
             const hargaPerMenu = menu.current.filter(function (el) {
-                return el.nama == menuSelected.current;
+                return el.nama == menuSelected.current[0];
             });
             console.log(hargaPerMenu[0]);
             setTotal(
@@ -156,7 +178,7 @@ export default function DailyDetail() {
 
         if (navigator.msSaveOrOpenBlob) {
             var blob = new Blob(["\ufeff", tableHTML], {
-                type: dataType
+                type: dataType,
             });
             navigator.msSaveOrOpenBlob(blob, filename);
         } else {
@@ -166,173 +188,491 @@ export default function DailyDetail() {
         }
     }
 
-    return (
-        <div className="container">
-            <div className="d-flex align-items-center justify-content-between">
-                <h1 className="my-3">Detail Daily Recap</h1>
-                <a className="btn btn-danger" id="btnDownloadDetail">
-                    <div className="d-flex justify-content-center align-items-center gap-2">
-                        <i className="material-icons">file_download</i>
-                        {load ? (
-                            ""
-                        ) : (
-                            <p className="m-0">
-                                Download Rekap Tgl{" "}
-                                {konversiTglPHP(data.tanggal.split(" ")[0])}
-                            </p>
-                        )}
-                    </div>
-                </a>
-            </div>
-            {load ? (
-                ""
-            ) : (
-                <h5>Tanggal : {konversiTglPHP(data.tanggal.split(" ")[0])}</h5>
-            )}
-            <table className="table table-striped" id="tabelDetail">
-                <thead>
-                    <tr>
-                        <th>Menu</th>
-                        <th>Jumlah</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {load ? (
-                        <tr>
-                            <td colSpan={2} className="text-center">
-                                Tidak ada data
-                            </td>
-                        </tr>
-                    ) : (
-                        <>
-                            {JSON.parse(data.data)
-                                .sort((a, b) => {
-                                    if (a.nama < b.nama) {
-                                        return -1;
-                                    }
-                                    if (a.nama > b.nama) {
-                                        return 1;
-                                    }
-                                    return 0;
-                                })
-                                .map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.nama.replace(/-/g, " ")}</td>
-                                        <td>{item.jumlah}</td>
-                                        <td>
-                                            Rp {numberWithCommas(item.harga)}
-                                        </td>
-                                        <td>
-                                            <div className="d-flex gap-2">
-                                                <button
-                                                    className="btn btn-light"
-                                                    onClick={() => {
-                                                        menuSelected.current =
-                                                            item.nama;
-                                                        setIsEdit(true);
-                                                    }}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    className="btn btn-danger"
-                                                    onClick={() => {
-                                                        handleDel(item.nama);
-                                                    }}
-                                                >
-                                                    <i className="material-icons">
-                                                        delete_forever
-                                                    </i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                        </>
-                    )}
-                    <tr>
-                        <th>Total Keseluruhan : </th>
-                        <th></th>
-                        {load ? (
-                            ""
-                        ) : (
-                            <th className="text-danger">
-                                Rp {numberWithCommas(data.total)}
-                            </th>
-                        )}
-                        <th></th>
-                    </tr>
-                </tbody>
-            </table>
+    function cetak() {
+        window.print();
+    }
 
-            {isEdit && (
-                <div className="overlay-hitam-bg">
-                    <div className="container-edit-daily">
-                        <h2 className="mb-3">
-                            Edit Menu {menuSelected.current.replace(/-/g, " ")}
-                        </h2>
-                        <div>
-                            <input
-                                type="number"
-                                className={
-                                    isInvalid
-                                        ? "form-control mb-1 is-invalid"
-                                        : "form-control mb-1"
-                                }
-                                placeholder="Jumlah"
-                                value={jumlah}
-                                onChange={(e) => {
-                                    setJumlah(e.target.value);
-                                }}
-                            />
-                            {isInvalid && (
-                                <div className="text-danger">
-                                    Jumlah harus lebih dari nol
-                                </div>
+    return (
+        <>
+            <div className="container no-print">
+                <div className="d-flex align-items-center justify-content-center">
+                    <h1 className="my-3 me-auto">Detail Daily Recap</h1>
+                    <a className="btn btn-danger me-1" id="btnDownloadDetail">
+                        <div className="d-flex justify-content-center align-items-center gap-2">
+                            <i className="material-icons">file_download</i>{" "}
+                            Download
+                        </div>
+                    </a>
+                    <button className="btn btn-outline-danger" onClick={cetak}>
+                        Print
+                    </button>
+                </div>
+                {load ? (
+                    ""
+                ) : (
+                    <h5>
+                        Tanggal : {konversiTglPHP(data.tanggal.split(" ")[0])}
+                    </h5>
+                )}
+                <table className="table table-striped" id="tabelDetail">
+                    <thead>
+                        <tr>
+                            <th>Menu</th>
+                            <th>Metode Bayar</th>
+                            <th>Jumlah</th>
+                            <th>Harga Satuan</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {load ? (
+                            <tr>
+                                <td colSpan={2} className="text-center">
+                                    Tidak ada data
+                                </td>
+                            </tr>
+                        ) : (
+                            <>
+                                {JSON.parse(data.data)
+                                    .sort((a, b) => {
+                                        if (a.nama < b.nama) {
+                                            return -1;
+                                        }
+                                        if (a.nama > b.nama) {
+                                            return 1;
+                                        }
+                                        return 0;
+                                    })
+                                    .map((item, index) => (
+                                        <React.Fragment key={index}>
+                                            {item.jumlahNonTunai ? (
+                                                <>
+                                                    {Number(item.jumlah) -
+                                                        Number(
+                                                            item.jumlahNonTunai
+                                                        ) >
+                                                        0 && (
+                                                        <tr>
+                                                            <td>
+                                                                {item.nama.replace(
+                                                                    /-/g,
+                                                                    " "
+                                                                )}
+                                                            </td>
+                                                            <td>Tunai</td>
+                                                            <td>
+                                                                {Number(
+                                                                    item.jumlah
+                                                                ) -
+                                                                    Number(
+                                                                        item.jumlahNonTunai
+                                                                    )}
+                                                            </td>
+                                                            <td>
+                                                                Rp{" "}
+                                                                {menu.current.map(
+                                                                    (
+                                                                        element
+                                                                    ) => {
+                                                                        if (
+                                                                            element.nama ===
+                                                                            item.nama
+                                                                        )
+                                                                            return numberWithCommas(
+                                                                                element.harga
+                                                                            );
+                                                                    }
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                {/* Rp{" "}
+                                                    {numberWithCommas(
+                                                        item.harga
+                                                    )} */}
+                                                                Rp{" "}
+                                                                {menu.current.map(
+                                                                    (
+                                                                        element
+                                                                    ) => {
+                                                                        if (
+                                                                            element.nama ===
+                                                                            item.nama
+                                                                        )
+                                                                            return numberWithCommas(
+                                                                                Number(
+                                                                                    element.harga
+                                                                                ) *
+                                                                                    (Number(
+                                                                                        item.jumlah
+                                                                                    ) -
+                                                                                        Number(
+                                                                                            item.jumlahNonTunai
+                                                                                        ))
+                                                                            );
+                                                                    }
+                                                                )}
+                                                            </td>
+                                                            {/* <td>
+                                                                <div className="d-flex gap-2">
+                                                                    <button
+                                                                        className="btn btn-light"
+                                                                        onClick={() => {
+                                                                            menuSelected.current =
+                                                                                [
+                                                                                    item.nama,
+                                                                                    "tunai",
+                                                                                ];
+                                                                            setIsEdit(
+                                                                                true
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-danger"
+                                                                        onClick={() => {
+                                                                            handleDel(
+                                                                                item.nama
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <i className="material-icons">
+                                                                            delete_forever
+                                                                        </i>
+                                                                    </button>
+                                                                </div>
+                                                            </td> */}
+                                                        </tr>
+                                                    )}
+                                                    {Number(
+                                                        item.jumlahNonTunai
+                                                    ) > 0 && (
+                                                        <tr>
+                                                            <td>
+                                                                {item.nama.replace(
+                                                                    /-/g,
+                                                                    " "
+                                                                )}
+                                                            </td>
+                                                            <td>Non Tunai</td>
+                                                            <td>
+                                                                {Number(
+                                                                    item.jumlahNonTunai
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                Rp{" "}
+                                                                {menu.current.map(
+                                                                    (
+                                                                        element
+                                                                    ) => {
+                                                                        if (
+                                                                            element.nama ===
+                                                                            item.nama
+                                                                        )
+                                                                            return numberWithCommas(
+                                                                                element.harga
+                                                                            );
+                                                                    }
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                {/* Rp{" "}
+                                                    {numberWithCommas(
+                                                        item.harga
+                                                    )} */}
+                                                                Rp{" "}
+                                                                {menu.current.map(
+                                                                    (
+                                                                        element
+                                                                    ) => {
+                                                                        if (
+                                                                            element.nama ===
+                                                                            item.nama
+                                                                        )
+                                                                            return numberWithCommas(
+                                                                                Number(
+                                                                                    element.harga
+                                                                                ) *
+                                                                                    Number(
+                                                                                        item.jumlahNonTunai
+                                                                                    )
+                                                                            );
+                                                                    }
+                                                                )}
+                                                            </td>
+                                                            {/* <td>
+                                                                <div className="d-flex gap-2">
+                                                                    <button
+                                                                        className="btn btn-light"
+                                                                        onClick={() => {
+                                                                            menuSelected.current =
+                                                                                [
+                                                                                    item.nama,
+                                                                                    "non-tunai",
+                                                                                ];
+                                                                            setIsEdit(
+                                                                                true
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-danger"
+                                                                        onClick={() => {
+                                                                            handleDel(
+                                                                                item.nama
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <i className="material-icons">
+                                                                            delete_forever
+                                                                        </i>
+                                                                    </button>
+                                                                </div>
+                                                            </td> */}
+                                                        </tr>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <tr>
+                                                    <td>
+                                                        {item.nama.replace(
+                                                            /-/g,
+                                                            " "
+                                                        )}
+                                                    </td>
+                                                    <td>Tidak diketahui</td>
+                                                    <td>{item.jumlah}</td>
+                                                    <td>
+                                                        Rp{" "}
+                                                        {menu.current.map(
+                                                            (element) => {
+                                                                if (
+                                                                    element.nama ===
+                                                                    item.nama
+                                                                )
+                                                                    return numberWithCommas(
+                                                                        element.harga
+                                                                    );
+                                                            }
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        Rp{" "}
+                                                        {numberWithCommas(
+                                                            item.harga
+                                                        )}
+                                                    </td>
+                                                    {/* <td>
+                                                        <div className="d-flex gap-2">
+                                                            <button
+                                                                className="btn btn-light"
+                                                                onClick={() => {
+                                                                    menuSelected.current =
+                                                                        [
+                                                                            item.nama,
+                                                                            "",
+                                                                        ];
+                                                                    setIsEdit(
+                                                                        true
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-danger"
+                                                                onClick={() => {
+                                                                    handleDel(
+                                                                        item.nama
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <i className="material-icons">
+                                                                    delete_forever
+                                                                </i>
+                                                            </button>
+                                                        </div>
+                                                    </td> */}
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
+                                    ))}
+                            </>
+                        )}
+                        <tr>
+                            <th colSpan={4}>Total Keseluruhan : </th>
+                            {load ? (
+                                ""
+                            ) : (
+                                <th className="text-danger">
+                                    Rp {numberWithCommas(data.total)}
+                                </th>
                             )}
-                        </div>
-                        <div className="input-group mb-1">
-                            <input
-                                type="number"
-                                className="form-control"
-                                placeholder="Diskon"
-                                value={diskon}
-                                onChange={(e) => {
-                                    setDiskon(e.target.value);
-                                }}
-                            />
-                            <span className="input-group-text">%</span>
-                        </div>
-                        <div className="input-group">
-                            <span className="input-group-text">Rp</span>
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Total Harga"
-                                disabled
-                                value={numberWithCommas(total)}
-                            />
-                        </div>
-                        <div className="d-flex gap-1 mt-3 justify-content-end">
-                            <button
-                                className="btn btn-outline-dark"
-                                onClick={handleEdit}
-                            >
-                                Simpan
-                            </button>
-                            <button
-                                className="btn btn-danger"
-                                onClick={() => {
-                                    setIsEdit(false);
-                                }}
-                            >
-                                Batal
-                            </button>
+                            <th></th>
+                        </tr>
+                    </tbody>
+                </table>
+
+                {isEdit && (
+                    <div className="overlay-hitam-bg">
+                        <div className="container-edit-daily">
+                            <h2 className="mb-3">
+                                Edit Menu{" "}
+                                {menuSelected.current[0].replace(/-/g, " ")} (
+                                {menuSelected.current[1]})
+                            </h2>
+                            <div>
+                                <input
+                                    type="number"
+                                    className={
+                                        isInvalid
+                                            ? "form-control mb-1 is-invalid"
+                                            : "form-control mb-1"
+                                    }
+                                    placeholder="Jumlah"
+                                    value={jumlah}
+                                    onChange={(e) => {
+                                        setJumlah(e.target.value);
+                                    }}
+                                />
+                                {isInvalid && (
+                                    <div className="text-danger">
+                                        Jumlah harus lebih dari nol
+                                    </div>
+                                )}
+                            </div>
+                            <div className="input-group mb-1">
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    placeholder="Diskon"
+                                    value={diskon}
+                                    onChange={(e) => {
+                                        setDiskon(e.target.value);
+                                    }}
+                                />
+                                <span className="input-group-text">%</span>
+                            </div>
+                            <div className="input-group">
+                                <span className="input-group-text">Rp</span>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Total Harga"
+                                    disabled
+                                    value={numberWithCommas(total)}
+                                />
+                            </div>
+                            <div className="d-flex gap-1 mt-3 justify-content-end">
+                                <button
+                                    className="btn btn-outline-dark"
+                                    onClick={handleEdit}
+                                >
+                                    Simpan
+                                </button>
+                                <button
+                                    className="btn btn-danger"
+                                    onClick={() => {
+                                        setIsEdit(false);
+                                    }}
+                                >
+                                    Batal
+                                </button>
+                            </div>
                         </div>
                     </div>
+                )}
+            </div>
+
+            <div className="print">
+                <div className="container">
+                    <img
+                        src="../img/logo.png"
+                        className="mx-auto d-block mt-2 mb-1"
+                    />
+                    {load ? (
+                        ""
+                    ) : (
+                        <h5>
+                            Recap Tanggal :{" "}
+                            {konversiTglPHP(data.tanggal.split(" ")[0])}
+                        </h5>
+                    )}
+                    <p>-------------------------------------</p>
+                    <table>
+                        <tbody>
+                            {load ? (
+                                <tr>
+                                    <td colSpan={2} className="text-center">
+                                        Tidak ada data
+                                    </td>
+                                </tr>
+                            ) : (
+                                <>
+                                    {JSON.parse(data.data)
+                                        .sort((a, b) => {
+                                            if (a.nama < b.nama) {
+                                                return -1;
+                                            }
+                                            if (a.nama > b.nama) {
+                                                return 1;
+                                            }
+                                            return 0;
+                                        })
+                                        .map((item, index) => {
+                                            return (
+                                                <tr key={index}>
+                                                    <td
+                                                        style={{
+                                                            paddingRight:
+                                                                "10px",
+                                                        }}
+                                                    >
+                                                        {item.jumlah}
+                                                    </td>
+                                                    <td className="text-start">
+                                                        {item.nama.replace(
+                                                            /-/g,
+                                                            " "
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {numberWithCommas(
+                                                            item.harga
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    <tr>
+                                        <th colSpan={2}></th>
+                                        <th
+                                            style={{
+                                                paddingBlock: "0px",
+                                                lineHeight: "5px",
+                                            }}
+                                        >
+                                            ---------
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colSpan={2} className="text-end">
+                                            Total :
+                                        </th>
+                                        <th>
+                                            Rp {numberWithCommas(data.total)}
+                                        </th>
+                                    </tr>
+                                </>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            )}
-        </div>
+            </div>
+        </>
     );
 }

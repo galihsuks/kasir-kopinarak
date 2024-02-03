@@ -36,7 +36,6 @@ export default function Daily() {
                     cekTotalList.current[cekInd] += Number(item.total);
                 }
             });
-            setRenderSkuy((prev) => !prev);
             // console.log(cekIndexList.current);
             // console.log(cekTotalList.current);
             exportTableToExcel();
@@ -72,7 +71,7 @@ export default function Daily() {
 
         if (navigator.msSaveOrOpenBlob) {
             var blob = new Blob(["\ufeff", tableHTML], {
-                type: dataType
+                type: dataType,
             });
             navigator.msSaveOrOpenBlob(blob, filename);
         } else {
@@ -80,6 +79,7 @@ export default function Daily() {
             btnDownloadTable.download = filename;
             // btnDownloadTable.click();
         }
+        setRenderSkuy((prev) => !prev);
     }
 
     return (
@@ -162,7 +162,7 @@ export default function Daily() {
             </table>
 
             {/* tabel excel */}
-            <table style={{ display: "none" }} id="tabelDaily">
+            <table id="tabelDaily" style={{ display: "none" }}>
                 <thead>
                     <tr>
                         <th>Tanggal</th>

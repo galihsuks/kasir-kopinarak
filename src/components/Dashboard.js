@@ -13,6 +13,7 @@ export default function Dashboard() {
     const [diskon, setDiskon] = useState(0);
     const [total, setTotal] = useState(0);
     const [cash, setCash] = useState(0);
+    const [metode, setMetode] = useState("tunai");
     const [kembali, setKembali] = useState(0);
     const [an, setAn] = useState("");
     const [anSign, setAnSign] = useState(false);
@@ -181,7 +182,7 @@ export default function Dashboard() {
             return callToast("Cash kurang", "bg-danger", "text-white");
         }
         async function addDailyTrig() {
-            const res = await addDaily(total, pesanan, diskon);
+            const res = await addDaily(total, pesanan, diskon, metode);
             idStokUpdate.current.forEach((eId, index, array) => {
                 const dataPostStok = {
                     id: stokCurrent.current[eId].id,
@@ -198,6 +199,7 @@ export default function Dashboard() {
             "bg-success",
             "text-white"
         );
+        remAll();
     }
     function callToast(text, bg = "", color = "") {
         setIsiToast(text);
@@ -403,13 +405,13 @@ export default function Dashboard() {
                                     className="btn btn-outline-dark"
                                     onClick={masukDraft}
                                 >
-                                    Save
+                                    Save to draft
                                 </button>
                                 <button
                                     className="btn btn-outline-dark"
                                     onClick={masukDaily}
                                 >
-                                    Daily
+                                    Payment
                                 </button>
                                 <button
                                     className="btn btn-outline-danger"
@@ -420,6 +422,7 @@ export default function Dashboard() {
                                 <button
                                     className="btn btn-danger"
                                     onClick={cetak}
+                                    disabled={cash >= total ? false : true}
                                 >
                                     Print
                                 </button>
@@ -518,9 +521,9 @@ export default function Dashboard() {
                                     <th>Rp {numberWithCommas(total)}</th>
                                 </tr>
                                 <tr>
-                                    <th colSpan={2}>Cash</th>
+                                    <th colSpan={2}>Pembayaran</th>
                                     <th>
-                                        <div className="input-group flex-nowrap">
+                                        <div className="input-group flex-nowrap mb-1">
                                             <span
                                                 className="input-group-text"
                                                 id="addon-wrapping"
@@ -530,11 +533,28 @@ export default function Dashboard() {
                                             <input
                                                 type="number"
                                                 className="form-control"
-                                                placeholder="Cash"
+                                                placeholder="Nominal"
                                                 onChange={(e) => {
                                                     setCash(e.target.value);
                                                 }}
                                             />
+                                        </div>
+                                        <div>
+                                            <select
+                                                className="form-select"
+                                                aria-label="Default select example"
+                                                value={metode}
+                                                onChange={(e) => {
+                                                    setMetode(e.target.value);
+                                                }}
+                                            >
+                                                <option value="tunai">
+                                                    Tunai
+                                                </option>
+                                                <option value="non-tunai">
+                                                    Non-tunai
+                                                </option>
+                                            </select>
                                         </div>
                                     </th>
                                 </tr>
@@ -579,7 +599,117 @@ export default function Dashboard() {
                     <img src="img/logo.png" className="mx-auto d-block mt-2" />
                     <p className="mb-0">Kradenan, Trucuk, Klaten</p>
                     <p className="mb-0 lh-1">Telp. 0851-8234-9672</p>
-                    <p className="mb-0 lh-1">PassWifi : mbotenngertos</p>
+                    <div className="d-flex justify-content-between mt-3">
+                        <p className="mb-0 lh-1">{getTanggal()}</p>
+                        <p className="mb-0 lh-1" ref={waktu}></p>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                        <p className="mb-0 lh-1">Atas nama</p>
+                        <p className="mb-0 lh-1">{an}</p>
+                    </div>
+                    <p className="mb-0">
+                        -------------------------------------
+                    </p>
+                    <table>
+                        <tbody>
+                            {pesanan.map((item, index) => {
+                                return (
+                                    <React.Fragment key={index}>
+                                        {item.jumlah > 0 ? (
+                                            <tr>
+                                                <td
+                                                    style={{
+                                                        paddingRight: "10px",
+                                                    }}
+                                                >
+                                                    {item.jumlah}
+                                                </td>
+                                                <td className="text-start">
+                                                    {item.nama.replace(
+                                                        /-/g,
+                                                        " "
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {numberWithCommas(
+                                                        item.harga * item.jumlah
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            ""
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
+                            <tr>
+                                <th colSpan={2}></th>
+                                <th
+                                    style={{
+                                        paddingBlock: "0px",
+                                        lineHeight: "5px",
+                                    }}
+                                >
+                                    ---------
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colSpan={2} className="text-end">
+                                    Sub Total :
+                                </th>
+                                <th>{numberWithCommas(subtotal.current)}</th>
+                            </tr>
+                            <tr>
+                                <th colSpan={2} className="text-end">
+                                    Diskon :
+                                </th>
+                                <th>{diskon}%</th>
+                            </tr>
+                            <tr>
+                                <th colSpan={2}></th>
+                                <th
+                                    style={{
+                                        paddingBlock: "0px",
+                                        lineHeight: "5px",
+                                    }}
+                                >
+                                    ---------
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colSpan={2} className="text-end">
+                                    Total :
+                                </th>
+                                <th>{numberWithCommas(total)}</th>
+                            </tr>
+                            <tr>
+                                <th colSpan={2} className="text-end">
+                                    Cash :
+                                </th>
+                                <th>{numberWithCommas(cash)}</th>
+                            </tr>
+                            <tr>
+                                <th colSpan={2} className="text-end">
+                                    Kembali :
+                                </th>
+                                <th>{numberWithCommas(kembali)}</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p className="mb-0">
+                        -------------------------------------
+                    </p>
+                    <p className="mb-0 lh-1">
+                        Terima kasih sudah mengunjungi @ko.pinarak
+                    </p>
+                </div>
+                <span className="d-block mt-4" style={{ color: "whitesmoke" }}>
+                    -----------------------------------------
+                </span>
+                <div className="container">
+                    <img src="img/logo.png" className="mx-auto d-block mt-2" />
+                    <p className="mb-0">Kradenan, Trucuk, Klaten</p>
+                    <p className="mb-0 lh-1">Telp. 0851-8234-9672</p>
                     <div className="d-flex justify-content-between mt-3">
                         <p className="mb-0 lh-1">{getTanggal()}</p>
                         <p className="mb-0 lh-1" ref={waktu}></p>
