@@ -18,21 +18,23 @@ export default function DailyDetail() {
         const dapatData = async () => {
             try {
                 const res = await getDaily(window.location.pathname.slice(7));
+                const resmenu = await getAllMenu();
+                if (resmenu) menu.current = resmenu;
                 if (res) setData(res);
             } catch (err) {
                 console.log(err);
             }
         };
         dapatData();
-        const dapatAllData = async () => {
-            try {
-                const res = await getAllMenu();
-                menu.current = res;
-            } catch (err) {
-                console.log(err);
-            }
-        };
-        dapatAllData();
+        // const dapatAllData = async () => {
+        //     try {
+        //         const res = await getAllMenu();
+        //         menu.current = res;
+        //     } catch (err) {
+        //         console.log(err);
+        //     }
+        // };
+        // dapatAllData();
     }, []);
 
     useEffect(() => {
@@ -55,30 +57,68 @@ export default function DailyDetail() {
         };
     }, [load]);
 
-    const handleDel = (nama) => {
+    const handleDel = (nama, metode) => {
         if (
             window.confirm(
-                "Data menu " + nama.replace(/-/g, " ") + " akan dihapus?"
-            ) == true
+                "Data menu " +
+                    `${nama.replace(/-/g, " ")} (${metode})` +
+                    " akan dihapus?"
+            ) === true
         ) {
             const datalama = JSON.parse(data.data);
-            let totalSemua = 0;
-            const menuSkrg = datalama
-                .filter((el) => {
-                    if (el.nama === nama) {
-                        return false;
-                    } else {
-                        return true;
+            console.log(datalama);
+            let totalSemua;
+            let totalDaily = 0;
+            const menuSkrg = datalama.map((el) => {
+                if (el.nama === nama) {
+                    let jmlAkhir, jmlNonTunaiAkhir;
+                    switch (metode) {
+                        case "tunai":
+                            jmlAkhir = Number(el.jumlahNonTunai);
+                            jmlNonTunaiAkhir = el.jumlahNonTunai;
+                            break;
+                        case "non-tunai":
+                            jmlAkhir =
+                                Number(el.jumlah) - Number(el.jumlahNonTunai);
+                            jmlNonTunaiAkhir = 0;
+                            break;
+                        default:
+                            jmlAkhir = 0;
+                            break;
                     }
+                    const hargaTotalbaru = menu.current
+                        .filter((element) => {
+                            if (element.nama === nama) return true;
+                        })
+                        .map((element) => {
+                            return Number(element.harga) * Number(jmlAkhir);
+                        });
+                    totalSemua = Number(hargaTotalbaru[0]);
+                    totalDaily += totalSemua;
+                    return {
+                        nama: el.nama,
+                        jumlah: jmlAkhir,
+                        jumlahNonTunai: jmlNonTunaiAkhir,
+                        harga: totalSemua,
+                    };
+                } else {
+                    totalSemua = Number(el.harga);
+                    totalDaily += totalSemua;
+                    return el;
+                }
+            });
+            const menuSkrgFilterJmlNol = menuSkrg
+                .filter((el) => {
+                    if (Number(el.jumlah) > 0) return true;
                 })
                 .map((el) => {
-                    totalSemua += Number(el.harga);
                     return el;
                 });
+            console.log(menuSkrgFilterJmlNol, totalSemua, totalDaily);
             async function editDaily() {
                 const res = await updateDaily(
-                    menuSkrg,
-                    totalSemua,
+                    menuSkrgFilterJmlNol,
+                    totalDaily,
                     window.location.pathname.slice(7)
                 );
                 if (res) window.location.reload();
@@ -92,6 +132,7 @@ export default function DailyDetail() {
             const datalama = JSON.parse(data.data);
             let jumlahSemua = 0;
             let totalSemua = 0;
+            let totalDaily = 0;
             const menuSkrg = datalama.map((el) => {
                 if (el.nama === menuSelected.current[0]) {
                     const menuDataSelected = menu.current.filter(function (
@@ -100,21 +141,34 @@ export default function DailyDetail() {
                         return el_child.nama == menuSelected.current[0];
                     });
                     let cekJumlahNonTunai = 0;
-                    if (menuSelected.current[1] === "tunai") {
-                        jumlahSemua += Number(el.jumlahNonTunai);
-                        totalSemua +=
+                    if (menuSelected.current[1] == "tunai") {
+                        console.log("ini edit tunai");
+                        jumlahSemua = Number(el.jumlahNonTunai);
+                        totalSemua =
                             Number(menuDataSelected[0].harga) *
                             Number(el.jumlahNonTunai);
-                    } else if (menuSelected.current[1] === "non-tunai") {
-                        jumlahSemua +=
+                        cekJumlahNonTunai = el.jumlahNonTunai;
+                    } else if (menuSelected.current[1] == "non-tunai") {
+                        console.log("ini edit non tunai");
+                        jumlahSemua =
                             Number(el.jumlah) - Number(el.jumlahNonTunai);
-                        totalSemua +=
+                        totalSemua =
                             Number(menuDataSelected[0].harga) *
                             (Number(el.jumlah) - Number(el.jumlahNonTunai));
                         cekJumlahNonTunai = jumlah;
+                    } else {
+                        jumlahSemua = 0;
+                        totalSemua = 0;
                     }
-                    jumlahSemua += jumlah;
-                    totalSemua += total;
+                    jumlahSemua += Number(jumlah);
+                    totalSemua += Number(total);
+
+                    totalDaily += totalSemua;
+                    console.log(
+                        `${
+                            totalDaily - totalSemua
+                        } + ${totalSemua} = ${totalDaily}`
+                    );
                     return {
                         nama: menuSelected.current[0],
                         jumlah: Number(jumlahSemua),
@@ -122,14 +176,24 @@ export default function DailyDetail() {
                         harga: String(totalSemua),
                     };
                 } else {
-                    totalSemua += Number(el.harga);
+                    totalDaily += Number(el.harga);
+                    console.log(
+                        `${totalDaily - Number(el.harga)} + ${Number(
+                            el.harga
+                        )} = ${totalDaily}`
+                    );
                     return el;
                 }
             });
+
+            const menuSkrgSelected = menuSkrg.filter(function (el_child) {
+                return el_child.nama == menuSelected.current[0];
+            });
+            console.log(menuSkrg, totalSemua, totalDaily);
             async function editDaily() {
                 const res = await updateDaily(
                     menuSkrg,
-                    totalSemua,
+                    totalDaily,
                     window.location.pathname.slice(7)
                 );
                 if (res) window.location.reload();
@@ -245,7 +309,8 @@ export default function DailyDetail() {
                                     })
                                     .map((item, index) => (
                                         <React.Fragment key={index}>
-                                            {item.jumlahNonTunai ? (
+                                            {item.jumlahNonTunai != null ||
+                                            item.jumlahNonTunai != undefined ? (
                                                 <>
                                                     {Number(item.jumlah) -
                                                         Number(
@@ -312,7 +377,7 @@ export default function DailyDetail() {
                                                                     }
                                                                 )}
                                                             </td>
-                                                            {/* <td>
+                                                            <td>
                                                                 <div className="d-flex gap-2">
                                                                     <button
                                                                         className="btn btn-light"
@@ -333,7 +398,8 @@ export default function DailyDetail() {
                                                                         className="btn btn-danger"
                                                                         onClick={() => {
                                                                             handleDel(
-                                                                                item.nama
+                                                                                item.nama,
+                                                                                "tunai"
                                                                             );
                                                                         }}
                                                                     >
@@ -342,7 +408,7 @@ export default function DailyDetail() {
                                                                         </i>
                                                                     </button>
                                                                 </div>
-                                                            </td> */}
+                                                            </td>
                                                         </tr>
                                                     )}
                                                     {Number(
@@ -402,7 +468,7 @@ export default function DailyDetail() {
                                                                     }
                                                                 )}
                                                             </td>
-                                                            {/* <td>
+                                                            <td>
                                                                 <div className="d-flex gap-2">
                                                                     <button
                                                                         className="btn btn-light"
@@ -423,7 +489,8 @@ export default function DailyDetail() {
                                                                         className="btn btn-danger"
                                                                         onClick={() => {
                                                                             handleDel(
-                                                                                item.nama
+                                                                                item.nama,
+                                                                                "non-tunai"
                                                                             );
                                                                         }}
                                                                     >
@@ -432,7 +499,7 @@ export default function DailyDetail() {
                                                                         </i>
                                                                     </button>
                                                                 </div>
-                                                            </td> */}
+                                                            </td>
                                                         </tr>
                                                     )}
                                                 </>
@@ -466,7 +533,7 @@ export default function DailyDetail() {
                                                             item.harga
                                                         )}
                                                     </td>
-                                                    {/* <td>
+                                                    <td>
                                                         <div className="d-flex gap-2">
                                                             <button
                                                                 className="btn btn-light"
@@ -474,7 +541,7 @@ export default function DailyDetail() {
                                                                     menuSelected.current =
                                                                         [
                                                                             item.nama,
-                                                                            "",
+                                                                            false,
                                                                         ];
                                                                     setIsEdit(
                                                                         true
@@ -487,7 +554,8 @@ export default function DailyDetail() {
                                                                 className="btn btn-danger"
                                                                 onClick={() => {
                                                                     handleDel(
-                                                                        item.nama
+                                                                        item.nama,
+                                                                        false
                                                                     );
                                                                 }}
                                                             >
@@ -496,7 +564,7 @@ export default function DailyDetail() {
                                                                 </i>
                                                             </button>
                                                         </div>
-                                                    </td> */}
+                                                    </td>
                                                 </tr>
                                             )}
                                         </React.Fragment>

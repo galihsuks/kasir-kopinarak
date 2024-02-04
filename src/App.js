@@ -1,5 +1,11 @@
 import "./App.css";
-import { Route, Routes } from "react-router-dom";
+import {
+    Navigate,
+    Route,
+    Routes,
+    redirect,
+    useNavigate,
+} from "react-router-dom";
 import Dashboard from "./components/Dashboard";
 import Navbar from "./components/Navbar";
 import Daily from "./components/Daily";
@@ -9,8 +15,23 @@ import Menu from "./components/Menu";
 import MenuDetail from "./components/MenuDetail";
 import MenuAdd from "./components/MenuAdd";
 import Stok from "./components/Stok";
+import Login from "./components/Login";
+import { useAuth } from "./contexts/AuthContext";
+import { useEffect } from "react";
 
 function App() {
+    const { signup, currentUser, login } = useAuth();
+    const navigate = useNavigate();
+
+    const HarusLogin = ({ children }) => {
+        if (currentUser) return <div>{children}</div>;
+        else return (window.location.href = "/login");
+    };
+    const HarusLogout = ({ children }) => {
+        if (!currentUser) return <div>{children}</div>;
+        else return (window.location.href = "/");
+    };
+
     return (
         <div className="App">
             <Routes>
@@ -19,8 +40,10 @@ function App() {
                         index
                         element={
                             <>
-                                <Navbar page={"dashboard"} />
-                                <Dashboard />
+                                <HarusLogin>
+                                    <Navbar page={"dashboard"} />
+                                    <Dashboard />
+                                </HarusLogin>
                             </>
                         }
                     />
@@ -29,8 +52,10 @@ function App() {
                             index
                             element={
                                 <>
-                                    <Navbar page={"daily"} />
-                                    <Daily />
+                                    <HarusLogin>
+                                        <Navbar page={"daily"} />
+                                        <Daily />
+                                    </HarusLogin>
                                 </>
                             }
                         />
@@ -38,18 +63,32 @@ function App() {
                             path=":tgl"
                             element={
                                 <>
-                                    <Navbar page={"dailydetail"} />
-                                    <DailyDetail />
+                                    <HarusLogin>
+                                        <Navbar page={"dailydetail"} />
+                                        <DailyDetail />
+                                    </HarusLogin>
                                 </>
                             }
                         />
                     </Route>
                     <Route
+                        path="login"
+                        element={
+                            <>
+                                <HarusLogout>
+                                    <Login />
+                                </HarusLogout>
+                            </>
+                        }
+                    />
+                    <Route
                         path="draft"
                         element={
                             <>
-                                <Navbar page={"draft"} />
-                                <Draft />
+                                <HarusLogin>
+                                    <Navbar page={"draft"} />
+                                    <Draft />
+                                </HarusLogin>
                             </>
                         }
                     />
@@ -58,8 +97,10 @@ function App() {
                             index
                             element={
                                 <>
-                                    <Navbar page={"menu"} />
-                                    <Menu />
+                                    <HarusLogin>
+                                        <Navbar page={"menu"} />
+                                        <Menu />
+                                    </HarusLogin>
                                 </>
                             }
                         />
@@ -67,8 +108,10 @@ function App() {
                             path=":id"
                             element={
                                 <>
-                                    <Navbar page={"menu"} />
-                                    <MenuDetail />
+                                    <HarusLogin>
+                                        <Navbar page={"menu"} />
+                                        <MenuDetail />
+                                    </HarusLogin>
                                 </>
                             }
                         />
@@ -77,8 +120,10 @@ function App() {
                         path="addmenu"
                         element={
                             <>
-                                <Navbar page={"menu"} />
-                                <MenuAdd />
+                                <HarusLogin>
+                                    <Navbar page={"menu"} />
+                                    <MenuAdd />
+                                </HarusLogin>
                             </>
                         }
                     />
@@ -86,8 +131,18 @@ function App() {
                         path="stok"
                         element={
                             <>
-                                <Navbar page={"stok"} />
-                                <Stok />
+                                <HarusLogin>
+                                    <Navbar page={"stok"} />
+                                    <Stok />
+                                </HarusLogin>
+                            </>
+                        }
+                    />
+                    <Route
+                        path="*"
+                        element={
+                            <>
+                                <Navigate to={"/"}></Navigate>
                             </>
                         }
                     />

@@ -1,6 +1,20 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Navbar(props) {
+    const { signup, currentUser, login, logout } = useAuth();
+    const navigate = useNavigate();
+
+    async function handleLogout(e) {
+        e.preventDefault();
+        try {
+            await logout();
+            navigate("/login");
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     return (
         <nav className="navbar navbar-expand-lg bg-body-tertiary no-print">
             <div className="container">
@@ -81,6 +95,12 @@ export default function Navbar(props) {
                             </Link>
                         </li>
                     </ul>
+                    <button
+                        onClick={handleLogout}
+                        className="btn btn-danger ms-auto"
+                    >
+                        Logout
+                    </button>
                 </div>
             </div>
         </nav>

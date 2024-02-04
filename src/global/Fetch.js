@@ -93,7 +93,7 @@ export const addDaily = async (total, pesanan, diskon, metode) => {
                 nama: a.nama,
                 jumlah: a.jumlah,
                 harga: String(((100 - diskon) / 100) * a.harga),
-                jumlahNonTunai: metode === "tunai" ? 0 : 1,
+                jumlahNonTunai: metode === "tunai" ? 0 : Number(a.jumlah),
             };
         });
         axios
